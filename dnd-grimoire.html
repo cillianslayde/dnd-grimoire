@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>D&amp;D Grimoire</title>
+
+  <!-- ── Google Fonts ── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <!-- ── Stylesheet ── -->
+  <link rel="stylesheet" href="assets/css/main.css"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     D&D GRIMOIRE — v1i
+     Reskinned from the Book of Shadows shell. Tarot/Omens and the
+     Wheel-of-the-Year Calendar have been fully removed (no D&D
+     equivalent). Feature set: Character live sheet (HP/inventory/
+     conditions), Highlighter + My Highlights, D&D glossary with
+     inline term-linking, DM/Player role toggle with a friction-only
+     password gate, and Realm Export/Import for sharing world data
+     across separate devices. See README.md for full details.
+══════════════════════════════ -->
+<div id="app">
+
+  <!-- ── HEADER ── -->
+  <header id="header">
+    <div class="header-left">
+      <div class="app-wordmark">
+        <span class="wordmark-sub">D&amp;D</span>
+        <span class="wordmark-main">Grimoire</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div id="live-clock">
+        <span id="clock-time">00:00:00</span>
+        <span id="clock-date"></span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Entry type selector buttons -->
+      <button class="type-btn active" data-type="chronicle" title="Chronicle Entry">&#x1F4D3; Chronicle</button>
+      <button class="type-btn" data-type="spell"     title="Spell">&#x2726; Spell</button>
+      <button class="type-btn" data-type="lore"      title="Lore / World">&#x1F5FA; Lore</button>
+      <button class="type-btn" data-type="character" title="Character">&#x2694; Character</button>
+      <div class="divider-v"></div>
+      <button class="hdr-btn" id="btn-reader"     title="Read the Book">&#x1F4D6; Read</button>
+      <button class="hdr-btn" id="btn-highlights" title="My Highlights">&#x1F58D; Highlights</button>
+      <button class="hdr-btn" id="btn-dictionary" title="D&amp;D Dictionary">&#x1F4D6; Dictionary</button>
+      <div class="divider-v"></div>
+      <button class="hdr-btn" id="btn-role"       title="Toggle DM / Player mode">&#x1F3AD; Player</button>
+      <button class="hdr-btn" id="btn-export"     title="Export Realm (strips DM secrets)">&#x1F4E4; Export</button>
+      <button class="hdr-btn" id="btn-import"     title="Import Realm">&#x1F4E5; Import</button>
+      <div id="storage-status" class="storage-status loaded">0 entries</div>
+    </div>
+  </header><!-- /header -->
+
+
+  <!-- ── MAIN LAYOUT ── -->
+  <div id="main">
+
+    <!-- ══════════════════════════════
+         COMPOSER PANEL
+         All entry-type forms live here; only one visible at a time.
+    ══════════════════════════════ -->
+    <div id="composer">
+
+      <!-- ── Date stamp ── -->
+      <div class="composer-datestamp">
+        <span id="stamp-day"></span>
+        <span id="stamp-date"></span>
+        <span id="stamp-time"></span>
+      </div>
+
+      <!-- ══════════════════════════════
+           CHRONICLE COMPOSER
+      ══════════════════════════════ -->
+      <div class="entry-form" id="form-chronicle">
+        <div class="composer-field">
+          <input type="text" id="chronicle-title" class="composer-title-input" placeholder="Entry title (optional)&hellip;" autocomplete="off" spellcheck="true"/>
+        </div>
+        <div class="composer-field">
+          <textarea id="chronicle-body" class="composer-body" placeholder="What happened this session&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- Tone (was Mood) -->
+        <div class="composer-row">
+          <label class="composer-label">Tone</label>
+          <div class="mood-grid" id="mood-grid">
+            <button class="mood-btn active" data-mood="&#x2694; tense">&#x2694; Tense</button>
+            <button class="mood-btn" data-mood="&#x1F3D5; peaceful">&#x1F3D5; Peaceful</button>
+            <button class="mood-btn" data-mood="&#x1F389; triumphant">&#x1F389; Triumphant</button>
+            <button class="mood-btn" data-mood="&#x1F480; grim">&#x1F480; Grim</button>
+            <button class="mood-btn" data-mood="&#x1F31F; heroic">&#x1F31F; Heroic</button>
+            <button class="mood-btn" data-mood="&#x1F9E9; mysterious">&#x1F9E9; Mysterious</button>
+            <button class="mood-btn" data-mood="&#x1F602; comic">&#x1F602; Comic</button>
+            <button class="mood-btn" data-mood="&#x1F525; chaotic">&#x1F525; Chaotic</button>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="composer-row">
+          <label class="composer-label">Tags</label>
+          <input type="text" id="chronicle-tags" class="composer-tags-input" placeholder="tag1, tag2&hellip;" autocomplete="off"/>
+        </div>
+
+        <!-- Emoji strip -->
+        <div class="composer-row">
+          <label class="composer-label">Emoji</label>
+          <div class="emoji-strip" id="emoji-strip">
+            <button class="emoji-btn" data-emoji="🐉">🐉</button>
+            <button class="emoji-btn" data-emoji="⚔️">⚔️</button>
+            <button class="emoji-btn" data-emoji="🛡️">🛡️</button>
+            <button class="emoji-btn" data-emoji="🏰">🏰</button>
+            <button class="emoji-btn" data-emoji="🗡️">🗡️</button>
+            <button class="emoji-btn" data-emoji="🏹">🏹</button>
+            <button class="emoji-btn" data-emoji="🔥">🔥</button>
+            <button class="emoji-btn" data-emoji="❄️">❄️</button>
+            <button class="emoji-btn" data-emoji="⚡">⚡</button>
+            <button class="emoji-btn" data-emoji="💀">💀</button>
+            <button class="emoji-btn" data-emoji="🧙">🧙</button>
+            <button class="emoji-btn" data-emoji="🗝️">🗝️</button>
+            <button class="emoji-btn" data-emoji="📜">📜</button>
+            <button class="emoji-btn" data-emoji="💰">💰</button>
+            <button class="emoji-btn" data-emoji="🍺">🍺</button>
+            <button class="emoji-btn" data-emoji="🌲">🌲</button>
+            <button class="emoji-btn" data-emoji="⛰️">⛰️</button>
+            <button class="emoji-btn" data-emoji="🌊">🌊</button>
+            <button class="emoji-btn" data-emoji="🕯️">🕯️</button>
+            <button class="emoji-btn" data-emoji="✨">✨</button>
+            <button class="emoji-btn" data-emoji="🦴">🦴</button>
+            <button class="emoji-btn" data-emoji="🩸">🩸</button>
+            <button class="emoji-btn" data-emoji="🎲">🎲</button>
+          </div>
+        </div>
+
+        <!-- Pin -->
+        <div class="composer-row composer-row-inline">
+          <label class="pin-label">
+            <input type="checkbox" id="chronicle-pinned"/>
+            <span>&#x1F4CC; Pin this entry</span>
+          </label>
+        </div>
+
+        <!-- ── IMAGE UPLOAD — Chronicle ── -->
+        <div class="img-upload-section">
+          <label class="composer-label">Images</label>
+          <div class="img-upload-controls">
+            <button class="img-pick-btn" data-form="chronicle" type="button">&#x1F4CE; Add Images</button>
+            <div class="img-url-row">
+              <input type="text" class="img-url-input" data-form="chronicle" placeholder="Or paste image URL&hellip;" autocomplete="off"/>
+              <button class="img-url-btn" data-form="chronicle" type="button">Add</button>
+            </div>
+          </div>
+          <div class="img-preview-strip" id="img-preview-strip-chronicle"></div>
+        </div>
+
+      </div><!-- /form-chronicle -->
+
+
+      <!-- ══════════════════════════════
+           SPELL COMPOSER
+      ══════════════════════════════ -->
+      <div class="entry-form hidden" id="form-spell">
+        <div class="composer-field">
+          <input type="text" id="spell-title" class="composer-title-input" placeholder="Spell name&hellip;" autocomplete="off" spellcheck="true"/>
+        </div>
+
+        <!-- School -->
+        <div class="composer-row">
+          <label class="composer-label">School</label>
+          <div class="pill-grid" id="spell-school-grid">
+            <button class="pill-btn" data-val="abjuration">&#x1F6E1; Abjuration</button>
+            <button class="pill-btn" data-val="conjuration">&#x1F300; Conjuration</button>
+            <button class="pill-btn" data-val="divination">&#x1F52E; Divination</button>
+            <button class="pill-btn" data-val="enchantment">&#x2764;&#xFE0F; Enchantment</button>
+            <button class="pill-btn active" data-val="evocation">&#x26A1; Evocation</button>
+            <button class="pill-btn" data-val="illusion">&#x1F3AD; Illusion</button>
+            <button class="pill-btn" data-val="necromancy">&#x1F480; Necromancy</button>
+            <button class="pill-btn" data-val="transmutation">&#x1F300; Transmutation</button>
+          </div>
+        </div>
+
+        <!-- Level -->
+        <div class="composer-row">
+          <label class="composer-label">Level</label>
+          <div class="pill-grid" id="spell-level-grid">
+            <button class="pill-btn active" data-val="cantrip">Cantrip</button>
+            <button class="pill-btn" data-val="1">1st</button>
+            <button class="pill-btn" data-val="2">2nd</button>
+            <button class="pill-btn" data-val="3">3rd</button>
+            <button class="pill-btn" data-val="4">4th</button>
+            <button class="pill-btn" data-val="5">5th</button>
+            <button class="pill-btn" data-val="6">6th</button>
+            <button class="pill-btn" data-val="7">7th</button>
+            <button class="pill-btn" data-val="8">8th</button>
+            <button class="pill-btn" data-val="9">9th</button>
+          </div>
+        </div>
+
+        <!-- Casting Time, Range & Components -->
+        <div class="composer-row">
+          <label class="composer-label">Casting Time, Range &amp; Components</label>
+          <textarea id="spell-components" class="composer-body" style="min-height:80px" placeholder="1 action, 60 feet, V, S, M (a pinch of sulfur)&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- Duration & Classes -->
+        <div class="composer-row">
+          <label class="composer-label">Duration &amp; Classes</label>
+          <textarea id="spell-effect" class="composer-body" style="min-height:60px" placeholder="Instantaneous / Concentration, up to 1 minute &mdash; Wizard, Sorcerer&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- Description & Effect -->
+        <div class="composer-row">
+          <label class="composer-label">Description &amp; Effect</label>
+          <textarea id="spell-notes" class="composer-body" style="min-height:120px" placeholder="What the spell does, damage/save, upcasting notes&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <div class="composer-row">
+          <label class="composer-label">Tags</label>
+          <input type="text" id="spell-tags" class="composer-tags-input" placeholder="tag1, tag2&hellip;" autocomplete="off"/>
+        </div>
+
+        <!-- ── IMAGE UPLOAD — Spell ── -->
+        <div class="img-upload-section">
+          <label class="composer-label">Images</label>
+          <div class="img-upload-controls">
+            <button class="img-pick-btn" data-form="spell" type="button">&#x1F4CE; Add Images</button>
+            <div class="img-url-row">
+              <input type="text" class="img-url-input" data-form="spell" placeholder="Or paste image URL&hellip;" autocomplete="off"/>
+              <button class="img-url-btn" data-form="spell" type="button">Add</button>
+            </div>
+          </div>
+          <div class="img-preview-strip" id="img-preview-strip-spell"></div>
+        </div>
+
+      </div><!-- /form-spell -->
+
+
+      <!-- ══════════════════════════════
+           LORE COMPOSER
+      ══════════════════════════════ -->
+      <div class="entry-form hidden" id="form-lore">
+        <div class="composer-field">
+          <input type="text" id="lore-title" class="composer-title-input" placeholder="Realm, region, location, or scenario name&hellip;" autocomplete="off" spellcheck="true"/>
+        </div>
+
+        <!-- Tier -->
+        <div class="composer-row">
+          <label class="composer-label">Tier</label>
+          <div class="pill-grid" id="lore-tier-grid">
+            <button class="pill-btn active" data-val="realm">&#x1F30D; Realm</button>
+            <button class="pill-btn" data-val="region">&#x1F5FA; Region</button>
+            <button class="pill-btn" data-val="location">&#x1F3F0; Location</button>
+            <button class="pill-btn" data-val="scenario">&#x1F4CB; Scenario</button>
+          </div>
+        </div>
+
+        <!-- Parent (populated at runtime from the tier above) -->
+        <div class="composer-row">
+          <label class="composer-label">Parent</label>
+          <select id="lore-parent" class="composer-tags-input">
+            <option value="">&mdash; top tier, no parent needed &mdash;</option>
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div class="composer-row">
+          <label class="composer-label">Description</label>
+          <textarea id="lore-body" class="composer-body" style="min-height:100px" placeholder="What is this place/scenario, at a glance&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- Notable details / history -->
+        <div class="composer-row">
+          <label class="composer-label">Notable Details &amp; History</label>
+          <textarea id="lore-notes" class="composer-body" style="min-height:120px" placeholder="Notable figures, factions, history, secrets the party has (or hasn't) discovered&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- DM Secrets — composer-edited regardless of current role; only rendered to the reader when role=dm -->
+        <div class="composer-row">
+          <label class="composer-label">&#x1F511; DM Secrets <span class="dm-field-hint">(only visible in DM mode)</span></label>
+          <textarea id="lore-dmsecrets" class="composer-body dm-field" style="min-height:90px" placeholder="Hidden truths, twists, or DM-only notes about this place&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <div class="composer-row">
+          <label class="composer-label">Tags</label>
+          <input type="text" id="lore-tags" class="composer-tags-input" placeholder="tag1, tag2&hellip;" autocomplete="off"/>
+        </div>
+
+        <!-- ── IMAGE UPLOAD — Lore ── -->
+        <div class="img-upload-section">
+          <label class="composer-label">Images</label>
+          <div class="img-upload-controls">
+            <button class="img-pick-btn" data-form="lore" type="button">&#x1F4CE; Add Images</button>
+            <div class="img-url-row">
+              <input type="text" class="img-url-input" data-form="lore" placeholder="Or paste image URL (map, illustration)&hellip;" autocomplete="off"/>
+              <button class="img-url-btn" data-form="lore" type="button">Add</button>
+            </div>
+          </div>
+          <div class="img-preview-strip" id="img-preview-strip-lore"></div>
+        </div>
+
+      </div><!-- /form-lore -->
+
+
+      <!-- ══════════════════════════════
+           CHARACTER COMPOSER
+           This is the creation form. Once saved, the live sheet
+           (HP/inventory/conditions) is managed from the Character
+           Sheet modal — opened by clicking the character elsewhere
+           in the app — not from this form.
+      ══════════════════════════════ -->
+      <div class="entry-form hidden" id="form-character">
+        <div class="composer-field">
+          <input type="text" id="character-title" class="composer-title-input" placeholder="Character name&hellip;" autocomplete="off" spellcheck="true"/>
+        </div>
+
+        <!-- Class -->
+        <div class="composer-row">
+          <label class="composer-label">Class</label>
+          <div class="pill-grid" id="character-class-grid">
+            <button class="pill-btn active" data-val="fighter">&#x2694; Fighter</button>
+            <button class="pill-btn" data-val="wizard">&#x1F9D9; Wizard</button>
+            <button class="pill-btn" data-val="rogue">&#x1F5E1; Rogue</button>
+            <button class="pill-btn" data-val="cleric">&#x1F64F; Cleric</button>
+            <button class="pill-btn" data-val="ranger">&#x1F3F9; Ranger</button>
+            <button class="pill-btn" data-val="barbarian">&#x1FA93; Barbarian</button>
+            <button class="pill-btn" data-val="bard">&#x1F3B6; Bard</button>
+            <button class="pill-btn" data-val="druid">&#x1F343; Druid</button>
+            <button class="pill-btn" data-val="monk">&#x270A; Monk</button>
+            <button class="pill-btn" data-val="paladin">&#x1F6E1; Paladin</button>
+            <button class="pill-btn" data-val="sorcerer">&#x2728; Sorcerer</button>
+            <button class="pill-btn" data-val="warlock">&#x1F52E; Warlock</button>
+          </div>
+        </div>
+
+        <!-- Race / Level -->
+        <div class="composer-row">
+          <label class="composer-label">Race</label>
+          <input type="text" id="character-race" class="composer-tags-input" placeholder="Human, Elf, Dwarf, Tiefling&hellip;" autocomplete="off"/>
+        </div>
+        <div class="composer-row">
+          <label class="composer-label">Level</label>
+          <input type="number" id="character-level" class="composer-tags-input" placeholder="1" autocomplete="off" min="1" max="20"/>
+        </div>
+
+        <!-- Ability scores -->
+        <div class="composer-row">
+          <label class="composer-label">Ability Scores</label>
+          <div class="composer-row composer-row-inline" style="flex-wrap:wrap; gap:10px;">
+            <input type="number" id="character-str" class="composer-tags-input" placeholder="STR" style="max-width:80px" autocomplete="off"/>
+            <input type="number" id="character-dex" class="composer-tags-input" placeholder="DEX" style="max-width:80px" autocomplete="off"/>
+            <input type="number" id="character-con" class="composer-tags-input" placeholder="CON" style="max-width:80px" autocomplete="off"/>
+            <input type="number" id="character-int" class="composer-tags-input" placeholder="INT" style="max-width:80px" autocomplete="off"/>
+            <input type="number" id="character-wis" class="composer-tags-input" placeholder="WIS" style="max-width:80px" autocomplete="off"/>
+            <input type="number" id="character-cha" class="composer-tags-input" placeholder="CHA" style="max-width:80px" autocomplete="off"/>
+          </div>
+        </div>
+
+        <!-- Max HP — feeds the live sheet's HP ticker -->
+        <div class="composer-row">
+          <label class="composer-label">Max HP</label>
+          <input type="number" id="character-maxhp" class="composer-tags-input" placeholder="e.g. 24" style="max-width:120px" autocomplete="off" min="0"/>
+        </div>
+
+        <!-- Background & notes -->
+        <div class="composer-row">
+          <label class="composer-label">Background &amp; Notes</label>
+          <textarea id="character-body" class="composer-body" style="min-height:200px" placeholder="Backstory, personality, goals, relationships&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- DM Notes — composer-edited regardless of current role; only rendered to the reader/sheet when role=dm -->
+        <div class="composer-row">
+          <label class="composer-label">&#x1F511; DM Notes <span class="dm-field-hint">(only visible in DM mode)</span></label>
+          <textarea id="character-dmnotes" class="composer-body dm-field" style="min-height:90px" placeholder="Secret motives, hidden stats, DM-only context&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <div class="composer-row">
+          <label class="composer-label">Tags</label>
+          <input type="text" id="character-tags" class="composer-tags-input" placeholder="PC, NPC, ally, villain&hellip;" autocomplete="off"/>
+        </div>
+
+        <!-- ── IMAGE UPLOAD — Character ── -->
+        <div class="img-upload-section">
+          <label class="composer-label">Images</label>
+          <div class="img-upload-controls">
+            <button class="img-pick-btn" data-form="character" type="button">&#x1F4CE; Add Images</button>
+            <div class="img-url-row">
+              <input type="text" class="img-url-input" data-form="character" placeholder="Or paste image URL (portrait)&hellip;" autocomplete="off"/>
+              <button class="img-url-btn" data-form="character" type="button">Add</button>
+            </div>
+          </div>
+          <div class="img-preview-strip" id="img-preview-strip-character"></div>
+        </div>
+
+      </div><!-- /form-character -->
+
+
+      <!-- ── ACTION BAR — shared across all forms ── -->
+      <div class="composer-actions">
+        <button class="btn-clear" id="btn-clear">Clear</button>
+        <div class="composer-actions-right">
+          <span id="save-status" class="save-status"></span>
+          <button class="btn-save" id="btn-save" disabled>&#x1F4BE; Save to Grimoire</button>
+        </div>
+      </div>
+
+    </div><!-- /composer -->
+
+
+    <!-- ── RECENT PANEL ── -->
+    <div id="recent-panel">
+      <div class="recent-header">
+        <span class="recent-title">Grimoire</span>
+        <div class="recent-filters" id="recent-filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="chronicle">&#x1F4D3;</button>
+          <button class="filter-btn" data-filter="spell">&#x2726;</button>
+          <button class="filter-btn" data-filter="lore">&#x1F5FA;</button>
+          <button class="filter-btn" data-filter="character">&#x2694;</button>
+        </div>
+      </div>
+      <div class="recent-count-bar">
+        <span class="recent-count" id="recent-count">0 entries</span>
+      </div>
+
+      <!-- ── Grimoire Search + Autosuggest ── -->
+      <div class="grimoire-search-wrap">
+        <input  type="text"   id="grimoire-search"       class="grimoire-search-input" placeholder="Search the Grimoire&hellip;" autocomplete="off" spellcheck="false"/>
+        <button type="button" id="grimoire-search-clear"  class="grimoire-search-clear" style="display:none">&#x2715;</button>
+        <div id="grimoire-suggest" class="grimoire-suggest" style="display:none"></div>
+      </div>
+
+      <div id="recent-list" class="recent-list">
+        <div class="recent-empty">Your Grimoire is empty.<br/>Begin your first entry above.</div>
+      </div>
+    </div><!-- /recent-panel -->
+
+  </div><!-- /main -->
+
+
+  <!-- ── FOOTER ── -->
+  <footer id="footer">
+    <span class="footer-sig">~/&gt; D&amp;D Grimoire &middot; v1i</span>
+    <span class="footer-role" id="footer-role">Player mode</span>
+    <span class="footer-entry-count" id="footer-count">&mdash; entries</span>
+  </footer>
+
+
+  <!-- ══════════════════════════════
+       READER MODAL
+  ══════════════════════════════ -->
+  <div id="overlay-reader" class="overlay" style="display:none" role="dialog" aria-modal="true" aria-label="Grimoire Reader">
+    <div class="reader-modal">
+
+      <div class="reader-header">
+        <div class="reader-header-left">
+          <span class="reader-title">Grimoire</span>
+          <span class="reader-subtitle" id="reader-subtitle">All Entries</span>
+        </div>
+        <div class="reader-header-right">
+          <input type="text" class="reader-search" id="reader-search" placeholder="Search the Book&hellip;"/>
+          <select class="reader-filter-sel" id="reader-filter-type">
+            <option value="">All types</option>
+            <option value="chronicle">&#x1F4D3; Chronicle</option>
+            <option value="spell">&#x2726; Spell</option>
+            <option value="lore">&#x1F5FA; Lore</option>
+            <option value="character">&#x2694; Character</option>
+          </select>
+          <select class="reader-filter-sel" id="reader-filter-cat">
+            <option value="">All categories</option>
+          </select>
+          <button class="reader-sort-btn" id="reader-sort">&#x2193; Newest</button>
+          <button class="reader-terms-btn active" id="reader-terms-toggle" title="Toggle inline glossary term-linking">Terms: On</button>
+          <button class="reader-close-btn" id="reader-close">&#x2715;</button>
+        </div>
+      </div>
+
+      <div class="reader-body" id="reader-body">
+        <!-- Entries rendered by JS -->
+      </div>
+
+    </div>
+  </div><!-- /overlay-reader -->
+
+
+  <!-- ══════════════════════════════
+       CHARACTER SHEET MODAL
+       Opens directly when a Character is clicked, via openEntry().
+  ══════════════════════════════ -->
+  <div id="overlay-charsheet" class="overlay" style="display:none" role="dialog" aria-modal="true" aria-label="Character Sheet">
+    <div class="charsheet-modal">
+      <div class="cs-header">
+        <div class="cs-header-left">
+          <span class="cs-title" id="cs-title">Character</span>
+          <span class="cs-subtitle" id="cs-subtitle">Level 1 &middot; Race &middot; Class</span>
+        </div>
+        <button class="reader-close-btn" id="cs-close">&#x2715;</button>
+      </div>
+
+      <div class="cs-body" id="cs-body">
+
+        <!-- HP ticker -->
+        <div class="cs-section">
+          <div class="cs-section-label">Hit Points</div>
+          <div class="cs-hp-row">
+            <button class="cs-hp-btn" id="cs-hp-minus">&#x2212;</button>
+            <span class="cs-hp-value"><span id="cs-hp-current">0</span> / <span id="cs-hp-max">0</span></span>
+            <button class="cs-hp-btn" id="cs-hp-plus">&#x2B;</button>
+            <button class="cs-hp-set-btn" id="cs-hp-set">Set&hellip;</button>
+          </div>
+        </div>
+
+        <!-- Ability scores -->
+        <div class="cs-section">
+          <div class="cs-section-label">Ability Scores</div>
+          <div class="cs-ability-grid" id="cs-ability-grid"></div>
+        </div>
+
+        <!-- Inventory -->
+        <div class="cs-section">
+          <div class="cs-section-label">Inventory</div>
+          <div class="cs-inventory-list" id="cs-inventory-list"></div>
+          <div class="cs-inventory-add">
+            <input type="text" id="cs-inventory-input" class="composer-tags-input" placeholder="Add item&hellip;" autocomplete="off"/>
+            <button class="img-url-btn" id="cs-inventory-add-btn" type="button">Add</button>
+          </div>
+        </div>
+
+        <!-- Conditions -->
+        <div class="cs-section">
+          <div class="cs-section-label">Conditions</div>
+          <div class="cs-conditions-list" id="cs-conditions-list"></div>
+          <div class="cs-inventory-add">
+            <input type="text" id="cs-condition-input" class="composer-tags-input" placeholder="Add condition (e.g. Poisoned)&hellip;" autocomplete="off"/>
+            <button class="img-url-btn" id="cs-condition-add-btn" type="button">Add</button>
+          </div>
+        </div>
+
+        <!-- Sheet notes (autosaved) -->
+        <div class="cs-section">
+          <div class="cs-section-label">Notes <span class="cs-autosave-status" id="cs-notes-status"></span></div>
+          <textarea id="cs-notes" class="composer-body" style="min-height:90px" placeholder="Running notes during play&hellip;" spellcheck="true"></textarea>
+        </div>
+
+        <!-- Background (read-only, highlight/term enabled) -->
+        <div class="cs-section" id="cs-background-section">
+          <div class="cs-section-label">Background &amp; Notes</div>
+          <div class="cs-background-text hl-field" id="cs-background-text" data-field="body"></div>
+        </div>
+
+        <!-- DM Notes — only shown when role=dm -->
+        <div class="cs-section dm-field" id="cs-dmnotes-section" style="display:none">
+          <div class="cs-section-label">&#x1F511; DM Notes</div>
+          <div class="cs-background-text hl-field" id="cs-dmnotes-text" data-field="dmNotes"></div>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /overlay-charsheet -->
+
+
+  <!-- ══════════════════════════════
+       MY HIGHLIGHTS MODAL
+  ══════════════════════════════ -->
+  <div id="overlay-highlights" class="overlay" style="display:none" role="dialog" aria-modal="true" aria-label="My Highlights">
+    <div class="reader-modal" style="width:560px;">
+      <div class="reader-header">
+        <div class="reader-header-left">
+          <span class="reader-title">My Highlights</span>
+          <span class="reader-subtitle" id="highlights-subtitle">0 highlights</span>
+        </div>
+        <div class="reader-header-right">
+          <button class="reader-close-btn" id="highlights-close">&#x2715;</button>
+        </div>
+      </div>
+      <div class="reader-body" id="highlights-body"></div>
+    </div>
+  </div><!-- /overlay-highlights -->
+
+
+  <!-- ══════════════════════════════
+       DICTIONARY MODAL
+  ══════════════════════════════ -->
+  <div id="overlay-dictionary" class="overlay" style="display:none" role="dialog" aria-modal="true" aria-label="D&amp;D Dictionary">
+    <div class="reader-modal" style="width:560px;">
+      <div class="reader-header">
+        <div class="reader-header-left">
+          <span class="reader-title">Dictionary</span>
+          <span class="reader-subtitle" id="dictionary-subtitle">0 terms</span>
+        </div>
+        <div class="reader-header-right">
+          <input type="text" class="reader-search" id="dictionary-search" placeholder="Search terms&hellip;"/>
+          <button class="reader-close-btn" id="dictionary-close">&#x2715;</button>
+        </div>
+      </div>
+      <div class="reader-body" id="dictionary-body"></div>
+    </div>
+  </div><!-- /overlay-dictionary -->
+
+
+  <!-- ══════════════════════════════
+       DM AUTH MODAL (password gate — friction only, not real security)
+  ══════════════════════════════ -->
+  <div id="overlay-dmauth" class="overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-sm">
+      <h3 id="dmauth-title">Enter DM Mode</h3>
+      <p id="dmauth-desc">Enter your DM password.</p>
+      <input type="password" id="dmauth-pass" class="composer-tags-input" placeholder="Password" autocomplete="off" style="margin-bottom:10px"/>
+      <input type="password" id="dmauth-pass2" class="composer-tags-input" placeholder="Confirm password" autocomplete="off" style="margin-bottom:10px; display:none"/>
+      <div class="dmauth-error" id="dmauth-error"></div>
+      <div class="modal-actions" style="justify-content:space-between; align-items:center;">
+        <button class="dmauth-forgot" id="dmauth-forgot">Forgot password?</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-sec" id="dmauth-cancel">Cancel</button>
+          <button class="btn-danger" id="dmauth-submit" style="background:var(--gold); color:var(--bg);">Enter</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /overlay-dmauth -->
+
+
+  <!-- ══════════════════════════════
+       DELETE CONFIRM MODAL
+  ══════════════════════════════ -->
+  <div id="overlay-delete" class="overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-sm">
+      <h3>Remove Entry?</h3>
+      <p>This cannot be undone. The entry will be removed from your Grimoire.</p>
+      <div class="modal-actions">
+        <button class="btn-sec" id="delete-cancel">Cancel</button>
+        <button class="btn-danger" id="delete-confirm">Remove</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       HIGHLIGHT COLOR PALETTE (floating, positioned via JS)
+  ══════════════════════════════ -->
+  <div id="hl-palette" class="hl-palette" style="display:none">
+    <button class="hl-swatch" data-color="yellow" title="Yellow"></button>
+    <button class="hl-swatch" data-color="green"  title="Green"></button>
+    <button class="hl-swatch" data-color="blue"   title="Blue"></button>
+    <button class="hl-swatch" data-color="red"    title="Red"></button>
+    <button class="hl-swatch" data-color="purple" title="Purple"></button>
+    <button class="hl-clear" id="hl-clear-btn" title="Remove highlight">&#x2715;</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       DICTIONARY TERM POPOVER (floating, positioned via JS)
+  ══════════════════════════════ -->
+  <div id="term-popover" class="term-popover" style="display:none">
+    <div class="term-popover-term" id="term-popover-term"></div>
+    <div class="term-popover-def" id="term-popover-def"></div>
+    <div class="term-popover-live" id="term-popover-live"></div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       HIDDEN FILE INPUTS
+  ══════════════════════════════ -->
+  <input type="file" id="img-file-input" accept="image/*" multiple style="display:none" aria-hidden="true"/>
+  <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" aria-hidden="true"/>
+
+
+</div><!-- /app -->
+
+<!-- ── JavaScript ── -->
+<script src="assets/js/main.js"></script>
+
+</body>
+</html>
